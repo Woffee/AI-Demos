@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FactCheck Pro - AI-Powered Truth Verification</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+
+        .nav-links a:hover {
+            opacity: 0.8;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 4rem 0;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #fff, #f0f8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .fact-checker {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .input-section {
+            margin-bottom: 2rem;
+        }
+
+        .input-section h3 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+
+        .fact-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .fact-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .check-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 1rem auto;
+        }
+
+        .check-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .check-btn:active {
+            transform: translateY(0);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+            color: #667eea;
+            font-size: 2rem;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .result {
+            display: none;
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 5px solid;
+        }
+
+        .result.true {
+            background: rgba(76, 175, 80, 0.1);
+            border-left-color: #4CAF50;
+        }
+
+        .result.false {
+            background: rgba(244, 67, 54, 0.1);
+            border-left-color: #F44336;
+        }
+
+        .result.mixed {
+            background: rgba(255, 193, 7, 0.1);
+            border-left-color: #FFC107;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .result-icon {
+            font-size: 1.5rem;
+        }
+
+        .result.true .result-icon {
+            color: #4CAF50;
+        }
+
+        .result.false .result-icon {
+            color: #F44336;
+        }
+
+        .result.mixed .result-icon {
+            color: #FFC107;
+        }
+
+        .result h4 {
+            font-size: 1.3rem;
+            margin: 0;
+        }
+
+        .confidence {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 1rem 0;
+        }
+
+        .confidence-bar {
+            flex: 1;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            transition: width 1s ease;
+        }
+
+        .sources {
+            margin-top: 1rem;
+        }
+
+        .source-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 0.5rem;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            margin: 0.5rem 0;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 3rem 0;
+            text-align: center;
+            color: white;
+        }
+
+        .stat-item h3 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-examples {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .example-claim {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            cursor: pointer;
+            transition: background 0.3s;
+            border-left: 4px solid #667eea;
+        }
+
+        .example-claim:hover {
+            background: #e9ecef;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i>
+                FactCheck Pro
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#demo">Demo</a></li>
+                <li><a href="#about">About</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="hero" id="home">
+            <h1>Truth in the Age of Information</h1>
+            <p>AI-powered fact-checking that cuts through misinformation with precision and speed</p>
+        </section>
+
+        <section class="fact-checker" id="demo">
+            <div class="input-section">
+                <h3><i class="fas fa-search"></i> Enter a claim to fact-check:</h3>
+                <textarea 
+                    class="fact-input" 
+                    placeholder="Enter any claim, statement, or news article you want to verify..."
+                    id="claimInput"
+                ></textarea>
+                <button class="check-btn" onclick="checkFact()">
+                    <i class="fas fa-check-circle"></i>
+                    Verify Claim
+                </button>
+            </div>
+
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner"></i>
+                <p>Analyzing claim and cross-referencing sources...</p>
+            </div>
+
+            <div class="result" id="result">
+                <div class="result-header">
+                    <i class="result-icon"></i>
+                    <h4 class="result-title"></h4>
+                </div>
+                <p class="result-explanation"></p>
+                
+                <div class="confidence">
+                    <span>Confidence Level:</span>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill"></div>
+                    </div>
+                    <span class="confidence-percent"></span>
+                </div>
+
+                <div class="sources">
+                    <h5>Sources Verified:</h5>
+                    <div class="sources-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="demo-examples">
+            <h3>Try these example claims:</h3>
+            <div class="example-claim" onclick="setExample('The Great Wall of China is visible from space with the naked eye.')">
+                "The Great Wall of China is visible from space with the naked eye."
+            </div>
+            <div class="example-claim" onclick="setExample('Drinking 8 glasses of water per day is essential for health.')">
+                "Drinking 8 glasses of water per day is essential for health."
+            </div>
+            <div class="example-claim" onclick="setExample('Lightning never strikes the same place twice.')">
+                "Lightning never strikes the same place twice."
+            </div>
+        </section>
+
+        <section class="stats">
+            <div class="stat-item">
+                <h3>1M+</h3>
+                <p>Claims Verified</p>
+            </div>
+            <div class="stat-item">
+                <h3>95%</h3>
+                <p>Accuracy Rate</p>
+            </div>
+            <div class="stat-item">
+                <h3>50K+</h3>
+                <p>Trusted Sources</p>
+            </div>
+            <div class="stat-item">
+                <h3>2.3s</h3>
+                <p>Average Check Time</p>
+            </div>
+        </section>
+
+        <section class="features" id="features">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3>Lightning Fast</h3>
+                <p>Get fact-check results in seconds, not minutes. Our AI processes claims instantly against our comprehensive database.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-database"></i>
+                </div>
+                <h3>Comprehensive Sources</h3>
+                <p>Cross-reference claims against thousands of verified sources including academic papers, news outlets, and official records.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Confidence Scoring</h3>
+                <p>Every fact-check comes with a confidence score, showing how certain we are about the verification result.</p>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const factExamples = {
+            'The Great Wall of China is visible from space with the naked eye.': {
+                status: 'false',
+                title: 'Claim is FALSE',
+                explanation: 'This is a persistent myth. The Great Wall of China is not visible from space with the naked eye. NASA astronauts have confirmed that the wall is not visible from low Earth orbit without aid, and it\'s certainly not visible from the moon.',
+                confidence: 92,
+                sources: [
+                    'NASA Official Statement',
+                    'Astronaut Chris Hadfield Testimony',
+                    'Smithsonian Magazine',
+                    'National Geographic'
+                ]
+            },
+            'Drinking 8 glasses of water per day is essential for health.': {
+                status: 'mixed',
+                title: 'Claim is PARTIALLY TRUE',
+                explanation: 'The "8 glasses a day" rule is not scientifically established. Hydration needs vary by individual, activity level, climate, and overall health. Most people get adequate hydration from food and beverages combined.',
+                confidence: 78,
+                sources: [
+                    'Mayo Clinic',
+                    'Harvard Health Publishing',
+                    'Institute of Medicine Report',
+                    'Journal of the American Dietetic Association'
+                ]
+            },
+            'Lightning never strikes the same place twice.': {
+                status: 'false',
+                title: 'Claim is FALSE',
+                explanation: 'Lightning frequently strikes the same place multiple times. Tall structures like the Empire State Building are struck by lightning about 100 times per year. The saying is just a metaphor, not a scientific fact.',
+                confidence: 96,
+                sources: [
+                    'National Weather Service',
+                    'NOAA Lightning Safety',
+                    'Scientific American',
+                    'Empire State Building Records'
+                ]
+            }
+        };
+
+        function setExample(claim) {
+            document.getElementById('claimInput').value = claim;
+        }
+
+        function checkFact() {
+            const input = document.getElementById('claimInput').value.trim();
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            
+            if (!input) {
+                alert('Please enter a claim to fact-check.');
+                return;
+            }
+
+            // Hide previous results and show loading
+            result.style.display = 'none';
+            loading.style.display = 'block';
+
+            // Simulate API call delay
+            setTimeout(() => {
+                loading.style.display = 'none';
+                showResult(input);
+            }, 2000);
+        }
+
+        function showResult(claim) {
+            const result = document.getElementById('result');
+            const resultIcon = result.querySelector('.result-icon');
+            const resultTitle = result.querySelector('.result-title');
+            const resultExplanation = result.querySelector('.result-explanation');
+            const confidenceFill = result.querySelector('.confidence-fill');
+            const confidencePercent = result.querySelector('.confidence-percent');
+            const sourcesList = result.querySelector('.sources-list');
+
+            // Get example data or generate generic response
+            const data = factExamples[claim] || {
+                status: 'mixed',
+                title: 'Analysis Complete',
+                explanation: 'Based on our analysis of available sources, this claim requires further context and verification. The available evidence suggests mixed or inconclusive results.',
+                confidence: 72,
+                sources: ['Academic Database', 'News Verification Network', 'Expert Opinion Panel', 'Cross-Reference Check']
+            };
+
+            // Set result class and icon
+            result.className = `result ${data.status}`;
+            
+            switch(data.status) {
+                case 'true':
+                    resultIcon.className = 'result-icon fas fa-check-circle';
+                    confidenceFill.style.background = '#4CAF50';
+                    break;
+                case 'false':
+                    resultIcon.className = 'result-icon fas fa-times-circle';
+                    confidenceFill.style.background = '#F44336';
+                    break;
+                case 'mixed':
+                    resultIcon.className = 'result-icon fas fa-exclamation-circle';
+                    confidenceFill.style.background = '#FFC107';
+                    break;
+            }
+
+            // Set content
+            resultTitle.textContent = data.title;
+            resultExplanation.textContent = data.explanation;
+            confidencePercent.textContent = `${data.confidence}%`;
+            
+            // Animate confidence bar
+            setTimeout(() => {
+                confidenceFill.style.width = `${data.confidence}%`;
+            }, 100);
+
+            // Add sources
+            sourcesList.innerHTML = '';
+            data.sources.forEach(source => {
+                const sourceItem = document.createElement('div');
+                sourceItem.className = 'source-item';
+                sourceItem.innerHTML = `
+                    <i class="fas fa-link"></i>
+                    <span>${source}</span>
+                `;
+                sourcesList.appendChild(sourceItem);
+            });
+
+            result.style.display = 'block';
+        }
+
+        // Add some interactive animations
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.feature-card');
+            
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            });
+
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s, transform 0.6s';
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>
